@@ -8,15 +8,8 @@
 
 ## **Agenda**
 
-1. [Log in to Confluent Cloud](#step-1)
-1. [Create an Environment and Cluster](#step-2)
-1. [Create an API Key Pair](#step-3)
-1. [Set up Postgres CDC source connector](#step-4)
-1. [Insert Records to the Database](#step-5)
-1. [Create Schema for database](#step-6)
-1. [Set up Postgres sink connector](#step-7)
-1. [Observe Real-time data streaming to destination database](#step-8)
-1. [Confluent Resources and Further Testing](#step-9)
+1. [TBD](#step-1)
+2. [TBD](#step-2)
 
 ***
 
@@ -71,15 +64,12 @@ TBD
 
 2. If you are logging in for the first time, you will see a self-guided wizard that walks you through spinning up a cluster. Please minimize this as you will walk through those steps in this workshop. 
 
-*** 
 
-## <a name="step-2"></a>**Create an Environment and Cluster**
+3. Click **+ Add Environment**. Specify an **Environment Name** and Click **Create**. 
 
-An environment contains clusters and its deployed components such as Connectors, ksqlDB, and Schema Registry. You have the ability to create different environments based on your company's requirements. Confluent has seen companies use environments to separate Development/Testing, Pre-Production, and Production clusters.
-
-1. Click **+ Add Environment**. Specify an **Environment Name** and Click **Create**. 
-
-    >**Note:** There is a *default* environment ready in your account upon account creation. You can use this *default* environment for the purpose of this workshop if you do not wish to create an additional environment.
+    >**Note:** An environment contains clusters and its deployed components such as Connectors, ksqlDB, and Schema Registry. You have the ability to create different environments based on your company's requirements. Confluent has seen companies use environments to separate Development/Testing, Pre-Production, and Production clusters.
+    
+    >There is a *default* environment ready in your account upon account creation. You can use this *default* environment for the purpose of this workshop if you do not wish to create an additional environment.
 
 <div align="center" padding=25px>
     <img src="images/environment.png" width=50% height=50%>
@@ -89,133 +79,52 @@ An environment contains clusters and its deployed components such as Connectors,
 
     > **Note:** Confluent Cloud clusters are available in 3 types: Basic, Standard, and Dedicated. Basic is intended for development use cases so you will use that for the workshop. Basic clusters only support single zone availability. Standard and Dedicated clusters are intended for production use and support Multi-zone deployments. If you are interested in learning more about the different types of clusters and their associated features and limits, refer to this [documentation](https://docs.confluent.io/current/cloud/clusters/cluster-types.html).
 
-3. Choose the **Basic** Cluster Type. 
+3. Choose the **Dedicated** Cluster Type. 
 
 <div align="center" padding=25px>
     <img src="images/cluster-type.png" width=50% height=50%>
 </div>
 
 4. Click **Begin Configuration**.
+   
 5. Choose your preferred Cloud Provider (AWS, GCP, or Azure), Region, and Availability Zone.
 
-6. Specify a **Cluster Name** - any name will work here. 
+6. Make sure the **Internet** option is selected for Networking configuration.
+
+7. Specify a **Cluster Name** - any name will work here. 
 
 <div align="center" padding=25px>
     <img src="images/create-cluster.png" width=50% height=50%>
 </div>
 
-7. View the associated Configuration & Cost, Usage Limits, and Uptime SLA information before launching.
+7. View the associated Configuration and Cost, Usage Limits, and Uptime SLA information before launching.
 
-8. Click **Launch Cluster.**
+8. Click **Launch Cluster.** The dedicated cluster type takes around 20 - 30 minutes for provisioning.
+   
 
-## <a name="step-3"></a>**Create an API Key Pair**
+## <a name="step-3"></a>**Step 3: Set up Cluster Linking**
 
-1. Select **API keys** on the left sidebar menu. 
-2. If this is your first API key within your cluster, click **Create key**. If you have set up API keys in your cluster in the past and already have an existing API key, click **+ Add key**.
-    <div align="center" padding=25px>
-       <img src="images/create-cc-api-key.png" width=50% height=50%>
-    </div>
+To set up Cluster Linking in Confluent Cloud, follow these steps:
 
-3. Select **My Account**, then click Next. Give it a description and click **Download and continue**
-4. Save your API key and secret - you will need these during the workshop.
-
-## <a name="step-4"></a>**Set up Postgres CDC source connector**
-
-Let’s say you have a database. How do you connect these data systems to your architecture?
-
-There are 2 options: <br>
-
-1. Develop your own connectors using the Kafka Connect framework (this requires a lot of development time and effort).  
-2. You can leverage the 180+ connectors Confluent offers out-of-the-box which allows you to configure your sources and sinks in a few, simple steps. To view the complete list of connectors that Confluent offers, please see [Confluent Hub](https://www.confluent.io/hub/).
-
-With Confluent’s connectors, your data systems can communicate with your services, completing your data pipeline. 
-
-In today's use case, we will be provisioning a Postgres CDC source connector and Postgres sink connector. 
-
-Now that you have completed setting up your Confluent Cloud account, cluster and Schema Registry, this next step will guide you how to configure a postgres connector in Confluent Cloud. 
-<br>
-1. Click on **Connectors**, then search for **Postgres CDC Source V2 (Debezium)** in the search bar.
-   <div align="center">
-      <img src="images/connector-source.png" width=75% height=75%>
-  </div>
-  
-2. This will redirect you to connector configuration page, select **Use an existing API Key** and provide API key credentials you created earlier.
-3. Next, go to the website link as shared earlier and click **Create a Database** at the source database and give ```<name>_<random6char>``` Make note of this name.<br>
-4. Click on **Refresh Records** button few times to see that there are no records in the new database created.
-4. Come back to connectors page and click next. Enter the database details as provided in the workshop.
-5. Click continue. This will take a few moments.<br>
-6. In the configuration page, modify the following to the values below:<br>
-	1. Output record value format: JSON_SR<br>
- 	2. Output Kafka record key format: JSON_SR<br>
-  	3. Topic prefix: db<br>
-   	4. Slot name: <database_name>_debezium<br>
-    	5. Publication name: <database_name>_dbz_publication<br>
-        6. Click on **Show advances configurations**
-   	7. **After-state only: true** and scroll down<br>
-	8. Click on **Add SMT**. Configure the following:<br>
- 		1. Transform Type: TopicRegexRouter<br>
-  		2. Transformation Values:
-   		```regex: (.*)\.(.*)\.(.*), replacement: $1_$2_$3``` <br>
-   <div align="center">
-      <img src="images/conn-config-source.png" width=75% height=75%>
-   </div><br>
-7. Click Next. Let the connector sizing remain as it is. Click to the next step.<br>
-8. Update the connector name to ```<database_name>_cdc```.
-10. Click Continue and create the connector.<br>
+1. Log in to the Confluent Cloud Console and select **Cluster links** from the menu on the left.
+2. Click **Create cluster link**.
+3. In the Source Cluster configurations:
+       3.1. jksjska
+       3.2. jksdfhjks
+3.1. hgjhghj
+   	3.1. Select **Confluent Platform or Apache Kafka** as the Source Cluster.
+   	3.2. Enter the source cluster Id (cluster id of your OSK).
+   	3.3. Uncheck the **Source initiated connection** in the Security access section and provide the Bootstrap server URL of your OSK.
+5. Select the destination cluster as the starting point.
+In the wizard, specify the source cluster and environment.
+Only clusters compatible for linking will appear.
+If needed, provide API key and secret details for the source cluster.
+The UI will guide you through configuring access options. You may need to specify credentials for a service account with the appropriate permissions.
+Provide a link name and, if prompted, configure any other allowed options.
+Review all selections and click Create.
 
 
-View the connector, its status, and metrics on the **Connectors** page.
 
-<div align="center">  
-	<img src="images/connector-page.png" width=75% height=75%>
-</div>
-
-## <a name="step-5"></a>**Insert Records to the Database**
-Here, we will be inserting new records to the database
-1. Go to the website: Link shared in the document during the workshop
-2. Click on **Insert Product Records** button.
-3. Click on **Submit Records** button to insert these records to the database.
-4. Click on **Refresh Records** button to view the new records inserted.
-5. Now go back to the Confluent Cloud and click on **Topics** in the left sidebar menu.
-6. You can notice on new topic got created: **db_public_products** click on the same and view the messages in the topic.
-
-## <a name="step-6"></a>**Create Schema for database**
-Here, we will be creating a database schema to use it in the sink connector we will configure later.
-1. Click on the link provided in the document during the workshop.
-2. Click on Create Schema. Use the database name created earlier as the schema name and click create.
-3. Click on *Refresh Records** multiple times to see the data in the target database schema.
-
-## <a name="step-7"></a>**Set up Postgres sink connector**
-1. Click on **Connectors**, then **+Add Connector** and search for **Postgres sink** in the search bar.
-   <div align="center">
-      <img src="images/connector-source.png" width=75% height=75%>
-  </div>
-  
-2. This will redirect you to select the topic from which you need data. Select **db_public_products**.
-3. Next, select **Use an existing API Key** and you can provide API key credentials you created earlier and click continue.
-4. Next, in the database connection details, enter database details as provided in the workshop.
-5. Under configuration, set Input Kafka record value format as **JSON_SR** and Insert mode as **UPSERT**.
-6. In advanced configuration, modify the following:<br>
-	1. Auto create table: true<br>
- 	2. Auto add columns: true<br>
-  	3. Table name format: <schema_name>.${topic}
-   	4. PK mode: record_value
-	5. PK Fields: id
-7. Scroll down and click on **Add SMT**
- 	1. Transform type: TombstoneHandler
-	2. behaviour: ignore
-8. Click **Continue** and let the connector sizing remain as it is. Click **Continue**.
-9. Change the connector name to ```<schema_name>_sink```.
-10. Once done, click continue and wait for the sink connector to get provisioned. View the status as running in the connectors page.
-   <div align="center">
-      <img src="images/connector-staus-pg.png" width=75% height=75%>
-  </div>
-   	 
- ## <a name="step-8"></a>**Observe Real-time data streaming to destination database**
-  Now that the connectors are configured, 
-  1. Go to the site provided and click **Refresh Records**. This will reflect all the previously added records in the source database reflecting on the target database as well.
-  2. Click on **Edit** button the source database record and modify any of the values and click on **Save Changes**.
-  3. Click on **Refresh Records** to see the change happen in target database as well.
 
   
     > **Note:** Make sure to delete all the resources created if you no longer wish to use the environment.
