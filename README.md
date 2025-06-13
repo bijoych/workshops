@@ -53,11 +53,11 @@ This workshop simulates that scenario by:
 
 By the end, participants will understand the complete migration process and key considerations for moving production workloads to the cloud.
 
-## <a name="step-1"></a>**Set up Open-Source Kafka (OSK)**
+## <a name="step-1"></a>**Step 1: Set up Open-Source Kafka (OSK)**
 
 TBD
 
-## <a name="step-2"></a>**Produce and Consume Data in OSK
+## <a name="step-2"></a>**Step 2: Produce and Consume Data in OSK**
 
 TBD
 
