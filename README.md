@@ -50,9 +50,13 @@ By the end, participants will understand the complete migration process and key 
 
 TBD
 
+<br>
+
 ## <a name="step-2"></a>**Step 2: Produce and Consume Data in OSK**
 
 TBD
+
+<br>
 
 ## <a name="step-3"></a>**Step 3: Set up Confluent Cloud and Create a Dedicated Cluster**
 
@@ -101,6 +105,7 @@ TBD
 
 8. Click **Launch Cluster.** The dedicated cluster type takes around 20 - 30 minutes for provisioning.
    
+<br>
 
 ## <a name="step-3"></a>**Step 3: Set up Cluster Linking**
 
