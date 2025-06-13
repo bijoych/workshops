@@ -109,19 +109,23 @@ To set up Cluster Linking in Confluent Cloud, follow these steps:
 1. Log in to the Confluent Cloud Console and select **Cluster links** from the menu on the left.
 2. Click **Create cluster link**.
 3. In the Source Cluster configurations:
-       3.1. jksjska
-       3.2. jksdfhjks
-3.1. hgjhghj
+
    	3.1. Select **Confluent Platform or Apache Kafka** as the Source Cluster.
+   
    	3.2. Enter the source cluster Id (cluster id of your OSK).
+   
    	3.3. Uncheck the **Source initiated connection** in the Security access section and provide the Bootstrap server URL of your OSK.
-5. Select the destination cluster as the starting point.
-In the wizard, specify the source cluster and environment.
-Only clusters compatible for linking will appear.
-If needed, provide API key and secret details for the source cluster.
-The UI will guide you through configuring access options. You may need to specify credentials for a service account with the appropriate permissions.
-Provide a link name and, if prompted, configure any other allowed options.
-Review all selections and click Create.
+   
+4. In the Destination Cluster configurations, select your environment and the dedicated cluster that you created previously.
+5. In the Configuration page:
+
+   5.1. Select **Enable for all existing and future source cluster topics** option in the Auto-create mirror topics section.
+
+   5.2. Select **Sync all existing and future consumer groups** option in the Sync consumer offsets section.
+
+6. Enter a Cluster link name, review your configurations, and click **Launch Cluster kink**.  
+
+
 
 
 
