@@ -141,9 +141,9 @@ In this section, you will set up an OSK instance on AWS EC2 instance using a Ter
 
 1. Open the repo directory in a new terminal window.
 2. Change directory to `terraform` directory:
-```
-cd terraform
-```
+    ```
+    cd terraform
+    ```
 3. Initialize Terraform
 
    ```bash
@@ -261,9 +261,42 @@ In this section, you will create a topic in OSK and populate it with sample data
 
     The message "This is a second message." is published. You then press **Ctrl+C** to exit the producer.
 
+5. Consume the messages using the `kafka-console-consumer.sh` utility. Also specify a consumer group - `my-consumer-group`.
+
+    ```
+    kafka-console-consumer.sh --bootstrap-server OSK-BROKER:9092 --topic test-topic --group my-consumer-group --from-beginning
+    ```
+
+    Make sure you see both the message you produced in the previous steps.
+
+6. View the consumer group offsets and lag by using the `kafka-consumer-groups.sh` utility. 
+
+    ```
+    kafka-consumer-groups.sh --bootstrap-server OSK-BROKER:9092 --describe --group my-consumer-group
+    ```
+
+    The command will produce a table with the following important columns:
+
+    ```
+    GROUP             TOPIC           PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG     ...           
+    my-consumer-group test-topic      0          2               2               0       ...
+    ```
+
+    A brief explanation of the columns:
+
+    - **CURRENT-OFFSET**: The last offset that the consumer group has successfully committed. This is the position where the consumer will resume reading from if it restarts.
+
+    - **LOG-END-OFFSET**: The offset of the newest message written to the partition. This is also known as the "High Watermark".
+
+    - **LAG**: The difference between LOG-END-OFFSET and CURRENT-OFFSET. This is the number of messages the consumer group has yet to consume. A high or consistently growing lag indicates that your consumers are not keeping up with the producers.    
+
 <br>
 
-## <a name="step-4"></a>**Step 4: Set up Cluster Linking**
+
+
+## <a name="step-4"></a>**Step 4: Set up Cluster Linking on Confluent Cloud**
+
+With the prerequisites in place, you can now proceed with configuring the Cluster Link. The process involves creating a link on the destination (Confluent Cloud) that points to your source (open-source Kafka) cluster.
 
 To set up Cluster Linking in Confluent Cloud, follow these steps:
 
@@ -314,7 +347,7 @@ Check the estimated lag and ensure it reflects minimal delays, indicating that r
 
 <br>
 
-## <a name="step-6"></a>**Step 6: Make the Mirror Topic writeable**
+## <a name="step-6"></a>**Step 6: Make the Mirror Topic Writable**
 
 To make a mirror topic writable (i.e., change it from read-only, mirrored state to a regular, independent, writable topic) in Confluent Kafka (whether in Confluent Platform or Confluent Cloud with Cluster Linking), you need to use either the promote or failover command. This operation is commonly called “promoting” the mirror topic, and is an essential step in cutover, DR, or migration workflows.
 
@@ -361,12 +394,67 @@ confluent kafka mirror describe <mirror-topic-name> --link <link-name>
 
 ## <a name="step-7"></a>**Step 7: Produce and Consume Data from Confluent Cloud**
 
+In this section, you will migrate your producer and consumer to write and read from Confluent Cloud Kafka cluster.
 
+1. In your terminal window, set `CC-KAFKA-BROKER` environment variable to point your Confluent Cloud Kafka cluster:
+    ```
+    export CC-KAFKA-BROKER=xxxxxxxxx-xxxxxxxx-xxxxxxx
+    ```
 
+2. Produce some sample data using the `kafka-console-producer.sh` utility.
 
+    ```bash
+    kafka-console-producer.sh --bootstrap-server CC-KAFKA-BROKER:9092 --topic test-topic
+    ```
 
-  
-   
+    Your terminal shows the prompt:
+
+    ```
+    >
+    ```
+
+    You type your first message and press Enter:
+
+    ```
+    > Hello from Confluent Cloud
+    ```
+
+    The message "Hello Kafka" is now published to `test-topic`. The prompt appears again, ready for the next message:
+
+    ```
+    > This is a new message added.
+    ```
+
+    The message "This is a new message added" is published. You then press **Ctrl+C** to exit the producer.
+
+3. Consume the messages using the `kafka-console-consumer.sh` utility.
+
+    ```
+    kafka-console-consumer.sh --bootstrap-server CC-KAFKA-BROKER:9092 --topic test-topic --from-beginning
+    ```
+
+    Make sure you see four messages. The one created on Confluent Kafka as well as OSK.
+
+6. View the consumer group offsets and lag by using the `kafka-consumer-groups.sh` utility. 
+
+    ```
+    kafka-consumer-groups.sh --bootstrap-server OSK-BROKER:9092 --describe --group my-consumer-group
+    ```
+
+    The command will produce a table with the following important columns:
+
+    ```
+    GROUP             TOPIC           PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG     ...           
+    my-consumer-group test-topic      0          2               2               0       ...
+    ```
+
+7. Consume only the new messages by specifying the consumer group.
+
+    ```
+    kafka-console-consumer.sh --bootstrap-server OSK-BROKER:9092 --topic test-topic --group my-consumer-group --from-beginning
+    ```
+
+    You see that the consumer from `my-consumer-group` starts consuming only the new messages from Confluent Kafka.
 
 <br>
 
