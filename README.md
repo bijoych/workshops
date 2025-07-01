@@ -107,7 +107,7 @@ TBD
    
 <br>
 
-## <a name="step-3"></a>**Step 3: Set up Cluster Linking**
+## <a name="step-3"></a>**Step 4: Set up Cluster Linking**
 
 To set up Cluster Linking in Confluent Cloud, follow these steps:
 
@@ -130,6 +130,43 @@ To set up Cluster Linking in Confluent Cloud, follow these steps:
 
 6. Enter a Cluster link name, review your configurations, and click **Launch Cluster kink**.  
 
+## <a name="step-3"></a>**Step 5: Verifying the Creation of the Mirror Topic in the Dedicated Cluster**
+
+Check Mirror Topics:
+
+To list all the mirror topics associated with the link, use the following command:
+
+```bash
+confluent kafka mirror list
+```
+
+Describe the Mirror Topic:
+
+To check the status and details of a specific mirror topic:
+
+```bash
+confluent kafka mirror describe <mirror-topic-name>
+```
+
+Look for the status to ensure it is in an active state and pulling records from the source.
+
+Monitor Data Replication:
+
+You can also verify that data is being replicated properly by monitoring the lag and message count in the mirror topic using:
+
+```bash
+confluent kafka topic describe <mirror-topic-name>
+```
+
+Check the estimated lag and ensure it reflects minimal delays, indicating that records are being pulled promptly from OSK.
+
+## <a name="step-3"></a>**Step 6: Make the Mirror Topic writeable**
+
+To make a mirror topic writable (i.e., change it from read-only, mirrored state to a regular, independent, writable topic) in Confluent Kafka (whether in Confluent Platform or Confluent Cloud with Cluster Linking), you need to use either the promote or failover command. This operation is commonly called “promoting” the mirror topic, and is an essential step in cutover, DR, or migration workflows.
+
+
+
+## <a name="step-2"></a>**Step 7: Produce and Consume Data from Confluent Cloud**
 
 
 
