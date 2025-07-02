@@ -21,8 +21,9 @@
 <div align="center">
     <img src="images/architecture.png" width=75% height=75%>
 </div>
-<br>
 
+
+<br>
 
 
 ## Prerequisites
@@ -49,6 +50,30 @@ Install the prerequisites by running:
 brew install git terraform confluentinc/tap/cli awscli
 ```
 
+Install **Kafka command-line interface (CLI)** on your laptop without running a local Kafka server.
+
+1. Download the Kafka binaries:
+
+    ```
+    cd /$HOME
+    curl -O https://downloads.apache.org/kafka/3.9.0/kafka_2.13-3.9.0.tgz
+    tar -xzf kafka_2.13-3.9.0.tgz
+    mv kafka_2.13-3.9.0 kafka
+    ```
+
+2. Configure Your System's PATH:
+
+    2.1. Open your shell profile file. This is typically `~/.zshrc` for Zsh (the default on modern macOS) or `~/.bash_profile` or `~/.bashrc` for Bash.
+
+    2.2. Add the following line to the end of the file.
+
+    ```
+    export PATH="$PATH:$HOME/kafka/bin"
+    ```
+
+    2.3. Apply the changes by restarting your terminal or running `source ~/.zshrc` (or the appropriate file for your shell).
+
+
 </details>
 
 <details>
@@ -63,8 +88,33 @@ winget install --id ConfluentInc.Confluent-CLI -e
 winget install --id Amazon.AWSCLI -e
 winget install --id Microsoft.OpenJDK.17 -e
 ```
+
+Install **Kafka command-line interface (CLI)** on your laptop without running a local Kafka server.
+`
+1. Go to the [Apache Kafka downloads](https://kafka.apache.org/downloads) page and find the archive for `2.13-3.9.0`. Download the binary `.tgz` file.
+2. Windows doesn't natively handle `.tgz` files well. Use a tool like **7-Zip** to extract the contents. Extract the files to a simple path, like `C:\kafka`.
+3. The Kafka CLI scripts for Windows are located in the `bin\windows` directory.
+
+    3.1. Open the "Environment Variables" settings:
+
+       - Press `Win + S` and search for "Edit the system environment variables."
+
+       - Click the "Environment Variables..." button.
+
+    3.2. Edit the Path variable: In the "System variables" section, find and select the `Path` variable, then click "Edit."
+
+    3.3. Add the Kafka `bin\windows` path:
+
+       - Click "New" and paste the full path to the `bin\windows` directory inside your extracted Kafka folder (e.g., `C:\kafka\bin\windows`).
+
+       - Save your changes by clicking "OK" on all the windows.
+
+       - Restart your Command Prompt or PowerShell for the changes to take effect.
+
 </details> 
 
+
+<br>
 
 
 ## Setup
@@ -120,6 +170,9 @@ winget install --id Microsoft.OpenJDK.17 -e
    ```
 
 
+<br>
+
+
 ## **Objective:**
 
 **Acme.com**, a mid-sized e-commerce company runs a self-managed Open-Source Apache Kafka (OSK) cluster on-premises to handle real-time order events. As their customer base grows, maintaining uptime, scaling storage, and ensuring disaster recovery becomes increasingly challenging. To overcome these limitations and reduce operational overhead, they plan to migrate their data pipeline to Confluent Cloud.
@@ -135,7 +188,10 @@ This workshop simulates that scenario by:
 By the end, participants will understand the complete migration process and key considerations for moving production workloads to the cloud.
 
 
-## <a name="step-1"></a>**Step 1: Set up Open-Source Kafka (OSK)**
+<br>
+
+
+## <a name="step-1"></a>Step 1: Set up Open-Source Kafka (OSK)
 
 In this section, you will set up an OSK instance on AWS EC2 instance using a Terrform script. Execute the following steps to perform this task:
 
@@ -158,9 +214,13 @@ In this section, you will set up an OSK instance on AWS EC2 instance using a Ter
 
 Terraform will take around 10 mins to deploy and initialize OSK on AWS EC2 instance.
 
+
+
 <br>
 
-## <a name="step-2"></a>**Step 2: Set up Confluent Cloud and Create a Dedicated Cluster**
+
+
+## <a name="step-2"></a>Step 2: Set up Confluent Cloud and Create a Dedicated Cluster
 
 1. Log in to [Confluent Cloud](https://confluent.cloud) and enter your email and password.
 
@@ -207,9 +267,13 @@ Terraform will take around 10 mins to deploy and initialize OSK on AWS EC2 insta
 
 8. Click **Launch Cluster.** The dedicated cluster type takes around 20 - 30 minutes for provisioning.
    
+
+
 <br>
 
-## <a name="step-3"></a>**Step 3: Produce and Consume Data in OSK**
+
+
+## <a name="step-3"></a>Step 3: Produce and Consume Data in OSK
 
 In this section, you will create a topic in OSK and populate it with sample data.
 
@@ -290,11 +354,11 @@ In this section, you will create a topic in OSK and populate it with sample data
 
     - **LAG**: The difference between LOG-END-OFFSET and CURRENT-OFFSET. This is the number of messages the consumer group has yet to consume. A high or consistently growing lag indicates that your consumers are not keeping up with the producers.    
 
+
 <br>
 
 
-
-## <a name="step-4"></a>**Step 4: Set up Cluster Linking on Confluent Cloud**
+## <a name="step-4"></a>Step 4: Set up Cluster Linking on Confluent Cloud
 
 With the prerequisites in place, you can now proceed with configuring the Cluster Link. The process involves creating a link on the destination (Confluent Cloud) that points to your source (open-source Kafka) cluster.
 
@@ -319,9 +383,13 @@ To set up Cluster Linking in Confluent Cloud, follow these steps:
 
 6. Enter a Cluster link name, review your configurations, and click **Launch Cluster kink**.  
 
+
+
 <br>
 
-## <a name="step-5"></a>**Step 5: Verifying the Creation of the Mirror Topic in the Dedicated Cluster**
+
+
+## <a name="step-5"></a>Step 5: Verifying the Creation of the Mirror Topic in the Dedicated Cluster
 
 To verify creation of the mirror topics, execute the following steps:
 
@@ -345,9 +413,13 @@ confluent kafka topic describe <mirror-topic-name>
 ```
 Check the estimated lag and ensure it reflects minimal delays, indicating that records are being pulled promptly from OSK.
 
+
+
 <br>
 
-## <a name="step-6"></a>**Step 6: Make the Mirror Topic Writable**
+
+
+## <a name="step-6"></a>Step 6: Make the Mirror Topic Writable
 
 To make a mirror topic writable (i.e., change it from read-only, mirrored state to a regular, independent, writable topic) in Confluent Kafka (whether in Confluent Platform or Confluent Cloud with Cluster Linking), you need to use either the promote or failover command. This operation is commonly called “promoting” the mirror topic, and is an essential step in cutover, DR, or migration workflows.
 
@@ -392,7 +464,23 @@ confluent kafka mirror describe <mirror-topic-name> --link <link-name>
 
 <br>
 
-## <a name="step-7"></a>**Step 7: Produce and Consume Data from Confluent Cloud**
+
+## <a name="step-7"></a>Step 7: Create an API Key Pair for Accessing Comfluent Cloud Kafka
+
+1. Select **API keys** on the left sidebar menu. 
+2. If this is your first API key within your cluster, click **Create key**. If you have set up API keys in your cluster in the past and already have an existing API key, click **+ Add key**.
+    <div align="center" padding=25px>
+       <img src="images/create-cc-api-key.png" width=50% height=50%>
+    </div>
+
+3. Select **My Account**, then click Next. Give it a description and click **Download and continue**
+4. Save your API key and secret - you will need these during the workshop.
+
+
+<br>
+
+
+## <a name="step-8"></a>Step 8: Produce and Consume Data from Confluent Cloud
 
 In this section, you will migrate your producer and consumer to write and read from Confluent Cloud Kafka cluster.
 
@@ -404,7 +492,12 @@ In this section, you will migrate your producer and consumer to write and read f
 2. Produce some sample data using the `kafka-console-producer.sh` utility.
 
     ```bash
-    kafka-console-producer.sh --bootstrap-server CC-KAFKA-BROKER:9092 --topic test-topic
+    kafka-console-producer \
+    --bootstrap-server <CC-KAFKA-BROKER>:9092 \
+    --topic test-topic \
+    --producer-property security.protocol=SASL_SSL \
+    --producer-property sasl.mechanism=PLAIN \
+    --producer-property "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<CC-API-KEY>\" password=\"<CC-API-SECRET>";"
     ```
 
     Your terminal shows the prompt:
@@ -429,16 +522,27 @@ In this section, you will migrate your producer and consumer to write and read f
 
 3. Consume the messages using the `kafka-console-consumer.sh` utility.
 
-    ```
-    kafka-console-consumer.sh --bootstrap-server CC-KAFKA-BROKER:9092 --topic test-topic --from-beginning
+    ```bash
+    kafka-console-consumer \
+    --bootstrap-server <CC-KAFKA-BROKER>:9092 \
+    --topic test-topic \
+    --consumer-property security.protocol=SASL_SSL \
+    --consumer-property sasl.mechanism=PLAIN \
+    --consumer-property "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<CC-API-KEY>\" password=\"<CC-API-SECRET>\";"
     ```
 
     Make sure you see four messages. The one created on Confluent Kafka as well as OSK.
 
 6. View the consumer group offsets and lag by using the `kafka-consumer-groups.sh` utility. 
 
-    ```
-    kafka-consumer-groups.sh --bootstrap-server OSK-BROKER:9092 --describe --group my-consumer-group
+    ```bash
+    kafka-consumer-groups \
+    --bootstrap-server <CC-KAFKA-BROKER>:9092 \
+    --describe \
+    --group my-consumer-group \
+    --consumer-property security.protocol=SASL_SSL \
+    --consumer-property sasl.mechanism=PLAIN \
+    --consumer-property "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<CC-API-KEY>\" password=\"<CC-API-SECRET>\";"
     ```
 
     The command will produce a table with the following important columns:
@@ -450,17 +554,25 @@ In this section, you will migrate your producer and consumer to write and read f
 
 7. Consume only the new messages by specifying the consumer group.
 
-    ```
-    kafka-console-consumer.sh --bootstrap-server OSK-BROKER:9092 --topic test-topic --group my-consumer-group --from-beginning
+    ```bash
+    kafka-console-consumer \
+    --bootstrap-server <CC-KAFKA-BROKER>:9092 \
+    --topic test-topic \
+    --group my-consumer-group \
+    --consumer-property security.protocol=SASL_SSL \
+    --consumer-property sasl.mechanism=PLAIN \
+    --consumer-property "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<CC-API-KEY>\" password=\"<CC-API-SECRET>\";"
     ```
 
     You see that the consumer from `my-consumer-group` starts consuming only the new messages from Confluent Kafka.
 
+
 <br>
+
 
 > ⚠️ **Note:** Make sure to delete all the resources created if you no longer wish to use the environment.
 
-## <a name="step-8"></a>**Confluent Resources and Further Testing**
+## <a name="step-8"></a>Confluent Resources and Further Testing
 
 * [Confluent Cloud Documentation](https://docs.confluent.io/cloud/current/overview.html)
 
