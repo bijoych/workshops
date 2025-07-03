@@ -545,7 +545,7 @@ In this section, you will migrate your producer and consumer to write and read f
     export CC-KAFKA-BROKER=xxxxxxxxx-xxxxxxxx-xxxxxxx
     ```
 
-2. Produce some sample data using the `kafka-console-producer.sh` utility. Ensure to replace **<CC-KAFKA-BROKER>, <CC-API-KEY>, <CC-API-SECRET>** with actual values before executing the command: 
+2. Produce some sample data using the `kafka-console-producer.sh` utility. Ensure to replace **<CC-KAFKA-BROKER>**, **<CC-API-KEY>**, and **<CC-API-SECRET>** with actual values before executing the command: 
 
     ```bash
     kafka-console-producer \
