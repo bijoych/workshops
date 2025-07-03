@@ -1,20 +1,8 @@
-<div align="center" padding=25px>
-    <img src="images/confluent.png" width=50% height=50%>
-</div>
 
 # <div align="center">Data Migration from Apache Kafka to Confluent Cloud</div>
-## <div align="center">Lab Guide</div>
 <br>
 
-
-
-## **Agenda**
-
-1. [TBD](#step-1)
-2. [TBD](#step-2)
-
-
-
+This repository provides a demonstration of migrating data from Open Source Kafka to Confluent Cloud using Cluster Linking.
 
 ## **Architecture**
 
@@ -36,10 +24,10 @@ Before you begin, ensure you have the following installed:
 
     > **Note:** You will create resources during this workshop that will incur costs. When you sign up for a Confluent Cloud account, you will get free credits to use in Confluent Cloud. This will cover the cost of resources created during the workshop. More details on the specifics can be found [here](https://www.confluent.io/confluent-cloud/tryfree/).
 
-- [Confluent CLI](https://docs.confluent.io/confluent-cli/current/install.html) - If on MAC run `brew install confluentinc/tap/cli`. 
 - [Terraform](https://www.terraform.io/downloads.html) - v1.5.7 or later. 
 - [AWS CLI](https://aws.amazon.com/cli/) configured with appropriate credentials.
-- [Kafka CLI](https://kafka.apache.org/downloads) 
+- [Kafka CLI (Optional)](https://kafka.apache.org/downloads) 
+- [Confluent CLI (Optional)](https://docs.confluent.io/confluent-cli/current/install.html) - If on MAC run `brew install confluentinc/tap/cli`. 
 
 <details>
 <summary>Installing prerequisites on MAC</summary>
@@ -119,8 +107,8 @@ Install **Kafka command-line interface (CLI)** on your laptop without running a 
 
 ## Setup
 
-1. Clone the repo onto your local development machine using `git clone https://github.com/confluentinc/XXXXXXXXXX.git`.
-2. Change directory to demo repository and terraform directory.
+1. Clone the repository onto your local development machine using `git clone https://github.com/confluentinc/XXXXXXXXXX.git`.
+2. Open a terminal window and change directory to the downloaded repository's terraform directory.
 
    ```
    cd workshop-XXXXXXX-XXXXXXX/terraform
@@ -195,8 +183,15 @@ By the end, participants will understand the complete migration process and key 
 
 In this section, you will set up an OSK instance on AWS EC2 instance using a Terrform script. Execute the following steps to perform this task:
 
-1. Open the repo directory in a new terminal window.
-2. Change directory to `terraform` directory:
+1. Ensure that you're in the directory of the downloaded GitHub repository within your terminal window. Also, confirm that the following environment variables are set for AWS access:
+
+    ```
+    AWS_ACCESS_KEY_ID="<AWS_API_KEY>"
+    AWS_SECRET_ACCESS_KEY="<AWS_SECRET>"
+    AWS_SESSION_TOKEN="<AWS_SESSION_TOKEN>"
+    ```
+
+2. Change directory to `terraform` directory (if not already done):
     ```
     cd terraform
     ```
@@ -273,36 +268,54 @@ Terraform will take around 10 mins to deploy and initialize OSK on AWS EC2 insta
 
 
 
-## <a name="step-3"></a>Step 3: Produce and Consume Data in OSK
+## <a name="step-3"></a>Step 3: Connect to Open-Source Kafka (OSK) and Produce Messages
 
-In this section, you will create a topic in OSK and populate it with sample data.
+In this section, you will SSH into an AWS EC2 instance running a standalone Kafka server. You'll then create a new topic on the Kafka server and use the Kafka CLI tools to produce and consume messages.
 
-1. Open a new terminal and navigate to your Terraform directory and run:
+1. Change directory to `terraform` directory (if not already done). Run the following command to find the EC2 instance public IP:
+   
    ```bash
    terraform output
    ```
 
-   Look for the value of `kafka`. It should look like this:
+   Copy the value of `instance_public_ip`. It should look like this:
 
    ```
-   xxxxxxxxx-xxxxxxxx-xxxxxxx
+    instance_public_ip = "XX.XX.XX.XX"
    ```
 
-2. Set this to the `OSK-BROKER` environment variable on your terminal:
+2. Use the following command to connect to the EC2 instance via SSH:
+
     ```
-    export OSK-BROKER=xxxxxxxxx-xxxxxxxx-xxxxxxx
+    ssh -i my-tf-key.pem ec2-user@XX.XX.XX.XX 
     ```
 
-3. Create a topic in OSK using the following command. You will use the `kafka-topics.sh` utility to create the topic:
+    Replace `XX.XX.XX.XX` with the EC2 instance public IP.
+
+3. Execute the following command to find the cluster ID for an open-source Apache Kafka installation. 
+
+    ```
+    kafka-cluster.sh cluster-id --bootstrap-server localhost:9092
+    ```
+
+    You’ll see an output like `Cluster ID: xxxxxxxxxxxxxxx`. Make sure to copy it, as you’ll need it later when setting up cluster linking.
+
+    > ⚠️ **Note:** If you see the error **kafka-cluster.sh: command not found** in your terminal, run the following command to update the system PATH environment variable.
+    
+   ```
+    source ~/.bash_profile
+   ```
+
+4. Create a topic in OSK using the following command. You will use the `kafka-topics.sh` utility to create the topic:
     
     ```bash
-    kafka-topics.sh --create --bootstrap-server OSK-BROKER:9092 --topic test-topic --partitions 1 --replication-factor 1
+    kafka-topics.sh --create --bootstrap-server localhost:9092 --topic test-topic --partitions 1 --replication-factor 1
     ```
 
-4. Produce some sample data using the `kafka-console-producer.sh` utility.
+5. Produce some sample data using the `kafka-console-producer.sh` utility.
 
     ```bash
-    kafka-console-producer.sh --bootstrap-server OSK-BROKER:9092 --topic test-topic
+    kafka-console-producer.sh --bootstrap-server localhost:9092 --topic test-topic
     ```
 
     Your terminal shows the prompt:
@@ -325,18 +338,18 @@ In this section, you will create a topic in OSK and populate it with sample data
 
     The message "This is a second message." is published. You then press **Ctrl+C** to exit the producer.
 
-5. Consume the messages using the `kafka-console-consumer.sh` utility. Also specify a consumer group - `my-consumer-group`.
+6. Consume the messages using the `kafka-console-consumer.sh` utility. Also specify a consumer group - `my-consumer-group`.
 
     ```
-    kafka-console-consumer.sh --bootstrap-server OSK-BROKER:9092 --topic test-topic --group my-consumer-group --from-beginning
+    kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test-topic --group my-consumer-group --from-beginning
     ```
 
     Make sure you see both the message you produced in the previous steps.
 
-6. View the consumer group offsets and lag by using the `kafka-consumer-groups.sh` utility. 
+7. View the consumer group offsets and lag by using the `kafka-consumer-groups.sh` utility. 
 
     ```
-    kafka-consumer-groups.sh --bootstrap-server OSK-BROKER:9092 --describe --group my-consumer-group
+    kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group my-consumer-group
     ```
 
     The command will produce a table with the following important columns:
@@ -370,9 +383,9 @@ To set up Cluster Linking in Confluent Cloud, follow these steps:
 
    	3.1. Select **Confluent Platform or Apache Kafka** as the Source Cluster.
    
-   	3.2. Enter the source cluster Id (cluster id of your OSK).
+   	3.2. Enter the source cluster ID (the cluster ID of your OSK instance that you copied earlier).
    
-   	3.3. Uncheck the **Source initiated connection** in the Security access section and provide the Bootstrap server URL of your OSK.
+   	3.3. Uncheck the **Source initiated connection** in the Security access section and provide the Bootstrap server URL of your OSK (`<instance_public_ip>:9092`).
    
 4. In the Destination Cluster configurations, select your environment and the dedicated cluster that you created previously.
 5. In the Configuration page:
@@ -381,7 +394,7 @@ To set up Cluster Linking in Confluent Cloud, follow these steps:
 
    5.2. Select **Sync all existing and future consumer groups** option in the Sync consumer offsets section.
 
-6. Enter a Cluster link name, review your configurations, and click **Launch Cluster kink**.  
+6. Enter a Cluster link name, review your configurations, and click **Launch Cluster Link**.  
 
 
 
@@ -393,23 +406,66 @@ To set up Cluster Linking in Confluent Cloud, follow these steps:
 
 To verify creation of the mirror topics, execute the following steps:
 
-1. To list all the mirror topics associated with the link, use the following command:
+1. Log into Confluent Cloud using the Confluent CLI. The CLI is already installed in the AWS EC2 instance. Connect to the EC2 instance using SSH and execute the following commands:
+
+    1.1. Login to Confluent Cloud:
+
+    ```
+    confluent login --no-browser
+    ```
+
+    If you belong to multiple Confluent Cloud organizations, include the `--organization` option during login to access the specific organization that contains your dedicated Kafka cluster.
+
+    1.2.  First, it's helpful to see which clusters are available in your current environment. This command will show you a list of your clusters along with their IDs.
+
+    ```
+    confluent kafka cluster list
+    ```
+
+    <br>
+
+    <details>
+    <summary>Click if you have multiple Confluent Cloud environments</summary>
+
+       1. List your environments:
+
+        `confluent environment list`
+        
+       2. Switch to a different environment:
+
+        `confluent environment use <environment-id>`
+
+       3. List clusters within that environment:
+
+        `confluent kafka cluster list`
+    </details>
+
+    <br>
+
+    1.3. Identify the cluster ID for your dedicated Kafka cluster and set it as your default for the session.
+
+    ```
+    confluent kafka cluster use <cluster-id>
+    ```
+
+
+2. To list all the mirror topics associated with the link, use the following command:
 
 ```bash
 confluent kafka mirror list
 ```
 
-2. To check the status and details of a specific mirror topic, execute the following command:
+3. To check the status and details of a specific mirror topic, execute the following command:
 
 ```bash
-confluent kafka mirror describe <mirror-topic-name>
+confluent kafka mirror describe <MIRROR-TOPIC-NAME> --link <CLUSTER-LINK-NAME>
 ```
 Look for the status to ensure it is in an active state and pulling records from the source.
 
-3. You can also verify that data is being replicated properly by monitoring the lag and message count in the mirror topic using the following command:
+4. You can also verify that data is being replicated properly by monitoring the lag and message count in the mirror topic using the following command:
 
 ```bash
-confluent kafka topic describe <mirror-topic-name>
+confluent kafka topic describe <MIRROR-TOPIC-NAME>
 ```
 Check the estimated lag and ensure it reflects minimal delays, indicating that records are being pulled promptly from OSK.
 
@@ -423,7 +479,7 @@ Check the estimated lag and ensure it reflects minimal delays, indicating that r
 
 To make a mirror topic writable (i.e., change it from read-only, mirrored state to a regular, independent, writable topic) in Confluent Kafka (whether in Confluent Platform or Confluent Cloud with Cluster Linking), you need to use either the promote or failover command. This operation is commonly called “promoting” the mirror topic, and is an essential step in cutover, DR, or migration workflows.
 
-> **Note:** Mirror topics are read-only topics created and owned by a cluster link. You cannot directly write to these topics; only the cluster link can synchronize data from the source topic. To make the topic writable, you must “convert” it to a regular topic by stopping (detaching) it from the cluster link. This is done by either promoting or failing over the topic. Once promoted or failed over, the mirror topic will permanently stop syncing from its source, and you can produce records to it like any other topic. This operation cannot be reversed—you would need to recreate the topic as a mirror topic if you want to re-establish mirroring.
+> ⚠️ **Note:** Mirror topics are read-only topics created and owned by a cluster link. You cannot directly write to these topics; only the cluster link can synchronize data from the source topic. To make the topic writable, you must “convert” it to a regular topic by stopping (detaching) it from the cluster link. This is done by either promoting or failing over the topic. Once promoted or failed over, the mirror topic will permanently stop syncing from its source, and you can produce records to it like any other topic. This operation cannot be reversed—you would need to recreate the topic as a mirror topic if you want to re-establish mirroring.
 
 Execute the following steps to make the mirror topic writable:
 
