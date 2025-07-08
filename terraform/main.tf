@@ -84,19 +84,28 @@ resource "aws_instance" "kafka_ec2" {
 
   user_data = <<-EOF
               #!/bin/bash
+              
+              # Redirect all output to a log file for debugging
+              exec > /tmp/user_data.log 2>&1
+
+              # Install Java
               yum update -y
               wget https://corretto.aws/downloads/latest/amazon-corretto-17-x64-linux-jdk.rpm
               sudo yum localinstall -y amazon-corretto-17-x64-linux-jdk.rpm
 
+              # Download and extract Kafka
               cd /opt
               curl -O https://downloads.apache.org/kafka/3.9.0/kafka_2.13-3.9.0.tgz
               tar -xzf kafka_2.13-3.9.0.tgz
               mv kafka_2.13-3.9.0 kafka
 
+              # Extract the public IP of EC2 instance
+              export EC2_PUBLIC_IP=$(curl -s ifconfig.me)
+
               # Update Kafka config
-              sed -i 's|^log.dirs=.*|log.dirs=/tmp/kafka-logs|' /opt/kafka/config/server.properties
-              sed -i 's|^#listeners=.*|listeners=PLAINTEXT://:9092|' /opt/kafka/config/server.properties
-              sed -i "s|^#advertised.listeners=.*|advertised.listeners=PLAINTEXT://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):9092|" /opt/kafka/config/server.properties
+              sudo sed -i 's|^log.dirs=.*|log.dirs=/tmp/kafka-logs|' /opt/kafka/config/server.properties
+              sudo sed -i 's|^#listeners=.*|listeners=PLAINTEXT://:9092|' /opt/kafka/config/server.properties
+              sudo sed -i "s|^#advertised.listeners=.*|advertised.listeners=PLAINTEXT://$${EC2_PUBLIC_IP}:9092|" /opt/kafka/config/server.properties
 
               # Start Zookeeper
               nohup /opt/kafka/bin/zookeeper-server-start.sh /opt/kafka/config/zookeeper.properties > /tmp/zookeeper.log 2>&1 &
@@ -115,8 +124,8 @@ resource "aws_instance" "kafka_ec2" {
               curl -sL --http1.1 https://cnfl.io/cli | sh -s --
               sudo mv ./bin/confluent /usr/local/bin/
 
-              EOF
 
+              EOF
     tags = {
     Name = "Kafka_EC2"
     }
