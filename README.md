@@ -543,7 +543,7 @@ In this section, you will migrate your producer and consumer to write and read f
     --topic test-topic \
     --producer-property security.protocol=SASL_SSL \
     --producer-property sasl.mechanism=PLAIN \
-    --producer-property "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<CC-API-KEY>\" password=\"<CC-API-SECRET>";"
+    --producer-property "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<CC-API-KEY>\" password=\"<CC-API-SECRET>\";"
     ```
 
     Press **Ctrl+C** to exit the producer.
