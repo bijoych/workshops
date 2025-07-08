@@ -462,13 +462,6 @@ confluent kafka mirror describe <MIRROR-TOPIC-NAME> --link <CLUSTER-LINK-NAME>
 ```
 Look for the status to ensure it is in an active state and pulling records from the source.
 
-4. You can also verify that data is being replicated properly by monitoring the lag and message count in the mirror topic using the following command:
-
-```bash
-confluent kafka topic describe <MIRROR-TOPIC-NAME>
-```
-Check the estimated lag and ensure it reflects minimal delays, indicating that records are being pulled promptly from OSK.
-
 
 
 <br>
