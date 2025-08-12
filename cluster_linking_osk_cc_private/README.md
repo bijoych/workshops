@@ -215,13 +215,9 @@ Terraform will take around 10 mins to deploy and initialize OSK on AWS EC2 insta
 
 
 
-## <a name="step-2"></a>Step 2: Set up Confluent Cloud and Create a Dedicated Cluster
+## <a name="step-2"></a>Step 2: Set up Confluent Cloud and Create a Enterprise Cluster
 
 1. Log in to [Confluent Cloud](https://confluent.cloud) and enter your email and password.
-
-<div align="center" padding=25px>
-    <img src="images/login.png" width=50% height=50%>
-</div>
 
 2. If you are logging in for the first time, you will see a self-guided wizard that walks you through spinning up a cluster. Please minimize this as you will walk through those steps in this workshop. 
 
@@ -232,45 +228,107 @@ Terraform will take around 10 mins to deploy and initialize OSK on AWS EC2 insta
     
     >There is a *default* environment ready in your account upon account creation. You can use this *default* environment for the purpose of this workshop if you do not wish to create an additional environment.
 
-<div align="center" padding=25px>
-    <img src="images/environment.png" width=50% height=50%>
-</div>
 
 2. Now that you have an environment, click **Create Cluster**. 
 
     > ⚠️ **Note:** Confluent Cloud clusters are available in 3 types: Basic, Standard, and Dedicated. Basic is intended for development use cases so you will use that for the workshop. Basic clusters only support single zone availability. Standard and Dedicated clusters are intended for production use and support Multi-zone deployments. If you are interested in learning more about the different types of clusters and their associated features and limits, refer to this [documentation](https://docs.confluent.io/current/cloud/clusters/cluster-types.html).
 
-3. Choose the **Dedicated** Cluster Type. 
+3. Enter a cluster name of your choice, and select the **Enterprise** Cluster Type. 
 
 <div align="center" padding=25px>
-    <img src="images/cluster-type.png" width=50% height=50%>
+    <img src="images/cc_create_cluster_00.png" width=50% height=50%>
 </div>
-
-4. Click **Begin Configuration**.
    
-5. Choose your preferred Cloud Provider (AWS, GCP, or Azure), Region, and Availability Zone.
+4. Select Provider as **AWS** and Region as **N. Virginia (us-east-1)**.
 
-6. Make sure the **Internet** option is selected for Networking configuration.
-
-7. Specify a **Cluster Name** - any name will work here. 
+5. Select Networking as **PrivateLink** and click **Create new network** button.
 
 <div align="center" padding=25px>
-    <img src="images/create-cluster.png" width=50% height=50%>
+     <img src="images/cc_create_cluster.png" width=50% height=50%>
 </div>
 
-7. View the associated Configuration and Cost, Usage Limits, and Uptime SLA information before launching.
+6. In the Configure gateway pane, provide a Gateway name. Make sure your Region is **N. Virginia (us-east-1)**. Click **Submit** button.
 
-8. Click **Launch Cluster.** The dedicated cluster type takes around 20 - 30 minutes for provisioning.
-   
+<div align="center" padding=12px>
+     <img src="images/cc_configure_gateway.png" width=50% height=10%>
+</div>
+
+7. In the Configure gateway Access point pane, click **AWS Console instructions** link to open the **Create a VPC Endpoint** page. Follow the instructions to **Create a VPC Endpoint**, **Create a PrivateLink Attachment Connection**, and **Set up DNS resolution** on AWS.
+
+    > ⚠️ **Hints:** Refer to the following for creating the endpoints:
+
+   I. Make sure to copy the **Service name** from the Configure gateway Access point pane -> PrivateLink Service ID.
+
+    <div align="center" padding=25px>
+     <img src="images/create_endpoint_01.png" width=50% height=50%>
+    </div>  
+
+    <div align="center" padding=25px>
+     <img src="images/create_endpoint_02.png" width=50% height=50%>
+    </div> 
+
+   II. Copy the **Endpoint ID** and **DNS names** in a notepad for future reference.
+
+    <div align="center" padding=25px>
+     <img src="images/endpoint_details.png" width=50% height=50%>
+    </div> 
+
+   III. Add the **Endpoint ID** to the Configure gateway Access point pane -> **VPC Endpoint ID from AWS** text field. </br>
+   IV. Enter the Access point name as **osk-access-point** and click **Create access point** button.
+
+    <div align="center" padding=25px>
+     <img src="images/cc_configure_gateway_2.png" width=50% height=50%>
+    </div> 
+
+   V. Copy the **DNS Domain** text for setting up DNS configuration on AWS. Click Finish.</br>
+   VI. Setting up DNS Configuration on AWS -> Route 53:</br>
+
+        Create a Private Hosted Zone:
+
+    <div align="center" padding=25px>
+     <img src="images/create_dns_02.png" width=50% height=70%>
+    </div> 
+
+        Create a **CNAME** Record:
+
+    <div align="center" padding=25px>
+     <img src="images/create_dns_03.png" width=50% height=70%>
+    </div> 
+
+    <div align="center" padding=25px>
+     <img src="images/create_dns_04.png" width=50% height=70%>
+    </div> 
+
+8. Make sure the **inbound_gateway** network configuration is in **Ready** state.
+
+    <div align="center" padding=25px>
+     <img src="images/cc_network_state.png" width=50% height=50%>
+    </div> 
+
+9. Click **Launch Cluster** button to launch the Enterprise Cluster.
 
 
 <br>
 
+## <a name="step-3"></a>Step 3: Explore the Confluent Cloud Enterprise Cluster
 
+In this section, you will explore the Enterprise Cluster uaing the Web console and retrive the cluster settings to be used later in the workshop.
 
-## <a name="step-3"></a>Step 3: Connect to Open-Source Kafka (OSK) and Produce Messages
+1. Go to your Environment and click on the newly launched cluster.
+2. You see various option on the left. Click Cluster Overview option and subsequently click Cluster Settings.
+3. On the Cluster Settings page, expand **PRIVATE_LINK** Endpoint and copy the **Bootstrap** value in your notepad. Also copy the **Cluster ID**.
 
-In this section, you will SSH into an AWS EC2 instance running a standalone Kafka server. You'll then create a new topic on the Kafka server and use the Kafka CLI tools to produce and consume messages.
+    <div align="center" padding=25px>
+     <img src="images/cc_bootstrap_value.png" width=50% height=50%>
+    </div> 
+
+4. Feel free to explore Networking. 
+
+<br>
+
+## <a name="step-4"></a>Step 4: Connect to Open-Source Kafka (OSK) and Produce Messages
+
+In this section, you will SSH into a **jumpbox VM** to run all the CLI commands. You'll then create a new topic on the Kafka server and use the Kafka CLI tools to produce and consume messages.
 
 1. Change directory to `terraform` directory (if not already done). Run the following command to find the EC2 instance public IP:
    
@@ -278,24 +336,27 @@ In this section, you will SSH into an AWS EC2 instance running a standalone Kafk
    terraform output
    ```
 
-   Copy the value of `instance_public_ip`. It should look like this:
+   Copy the output values in a notepad. It should look like this:
 
    ```
-    instance_public_ip = "XX.XX.XX.XX"
+    ec2_instance_vpc_id = "vpc-xxxxxxxxxxxxxxxxxx"
+    jumpbox_public_ip = "XX.XX.XX.XX"
+    kafka_public_ip = "XX.XX.XX.XX"
+    schema_registry_public_ip = "XX.XX.XX.XX "
    ```
 
-2. Use the following command to connect to the EC2 instance via SSH:
+2. Use the following command to connect to the jumpbox instance via SSH:
 
     ```
-    ssh -i my-tf-key.pem ec2-user@XX.XX.XX.XX 
+    ssh -i my-tf-key.pem ec2-user@<kafka_public_ip>
     ```
 
-    Replace `XX.XX.XX.XX` with the EC2 instance public IP.
+    Replace `<kafka_public_ip>` with the actual jumpbox public IP.
 
 3. Execute the following command to find the cluster ID for an open-source Apache Kafka installation. 
 
     ```
-    kafka-cluster.sh cluster-id --bootstrap-server localhost:9092
+    kafka-cluster.sh cluster-id --bootstrap-server <kafka_public_ip>:9092
     ```
 
     You’ll see an output like `Cluster ID: xxxxxxxxxxxxxxx`. Make sure to copy it, as you’ll need it later when setting up cluster linking.
@@ -306,16 +367,16 @@ In this section, you will SSH into an AWS EC2 instance running a standalone Kafk
     source ~/.bash_profile
    ```
 
-4. Create a topic in OSK using the following command. You will use the `kafka-topics.sh` utility to create the topic:
+4. Create a topic in Apache Kafka using the following command. You will use the `kafka-topics.sh` utility to create the topic:
     
     ```bash
-    kafka-topics.sh --create --bootstrap-server localhost:9092 --topic test-topic --partitions 1 --replication-factor 1
+    kafka-topics.sh --create --bootstrap-server <kafka_public_ip>:9092 --topic test-topic --partitions 1 --replication-factor 1
     ```
 
 5. Produce some sample data using the `kafka-console-producer.sh` utility.
 
     ```bash
-    kafka-console-producer.sh --bootstrap-server localhost:9092 --topic test-topic
+    kafka-console-producer.sh --bootstrap-server <kafka_public_ip>:9092 --topic test-topic
     ```
 
     Your terminal shows the prompt:
@@ -341,7 +402,7 @@ In this section, you will SSH into an AWS EC2 instance running a standalone Kafk
 6. Consume the messages using the `kafka-console-consumer.sh` utility. Also specify a consumer group - `my-consumer-group`.
 
     ```
-    kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test-topic --group my-consumer-group --from-beginning
+    kafka-console-consumer.sh --bootstrap-server <kafka_public_ip>:9092 --topic test-topic --group my-consumer-group --from-beginning
     ```
 
     Make sure you see both the message you produced in the previous steps.
@@ -349,7 +410,7 @@ In this section, you will SSH into an AWS EC2 instance running a standalone Kafk
 7. View the consumer group offsets and lag by using the `kafka-consumer-groups.sh` utility. 
 
     ```
-    kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group my-consumer-group
+    kafka-consumer-groups.sh --bootstrap-server <kafka_public_ip>:9092 --describe --group my-consumer-group
     ```
 
     The command will produce a table with the following important columns:
@@ -371,7 +432,7 @@ In this section, you will SSH into an AWS EC2 instance running a standalone Kafk
 <br>
 
 
-## <a name="step-4"></a>Step 4: Set up Cluster Linking on Confluent Cloud
+## <a name="step-5"></a>Step 5: Set up Cluster Linking on Confluent Cloud
 
 With the prerequisites in place, you can now proceed with configuring the Cluster Link. The process involves creating a link on the destination (Confluent Cloud) that points to your source (open-source Kafka) cluster.
 
@@ -399,7 +460,7 @@ To set up Cluster Linking in Confluent Cloud, follow these steps:
 
 <br>
 
-## <a name="step-5"></a>Step 5: Create an API Key Pair for Accessing Comfluent Cloud Kafka
+## <a name="step-6"></a>Step 6: Create an API Key Pair for Accessing Comfluent Cloud Kafka
 
 1. Select **API keys** on the left sidebar menu. 
 2. If this is your first API key within your cluster, click **Create key**. If you have set up API keys in your cluster in the past and already have an existing API key, click **+ Add key**.
@@ -414,7 +475,7 @@ To set up Cluster Linking in Confluent Cloud, follow these steps:
 <br>
 
 
-## <a name="step-6"></a>Step 6: Verifying the Creation of the Mirror Topic in the Dedicated Cluster
+## <a name="step-7"></a>Step 7: Verifying the Creation of the Mirror Topic in the Dedicated Cluster
 
 To verify creation of the mirror topics, execute the following steps:
 
@@ -479,7 +540,7 @@ Look for the status to ensure it is in an active state and pulling records from 
 
 
 
-## <a name="step-7"></a>Step 7: Make the Mirror Topic Writable
+## <a name="step-8"></a>Step 8: Make the Mirror Topic Writable
 
 The mirror topics are read-only by default. To make a mirror topic writable (i.e., change it from read-only, mirrored state to a regular, independent, writable topic) in Confluent Kafka (whether in Confluent Platform or Confluent Cloud with Cluster Linking), you need to use either the promote or failover command. This operation is commonly called “promoting” the mirror topic, and is an essential step in cutover, DR, or migration workflows.
 
@@ -531,7 +592,7 @@ Execute the following steps to make the mirror topic writable:
 <br>
 
 
-## <a name="step-8"></a>Step 8: Produce and Consume Data from Confluent Cloud
+## <a name="step-9"></a>Step 9: Produce and Consume Data from Confluent Cloud
 
 In this section, you will migrate your producer and consumer to write and read from Confluent Cloud Kafka cluster.
 
@@ -596,7 +657,7 @@ In this section, you will migrate your producer and consumer to write and read f
 
 <br>
 
-## <a name="step-9"></a>Step 9: Clean up the Resources
+## <a name="step-10"></a>Step 10: Clean up the Resources
 
 Make sure to delete all the resources created if you no longer wish to use the environment.
 
