@@ -434,38 +434,98 @@ In this section, you will SSH into a **jumpbox VM** to run all the CLI commands.
 
 ## <a name="step-5"></a>Step 5: Set up Cluster Linking on Confluent Cloud
 
-With the prerequisites in place, you can now proceed with configuring the Cluster Link. The process involves creating a link on the destination (Confluent Cloud) that points to your source (open-source Kafka) cluster.
+With the prerequisites complete, you can now configure the Cluster Link. This process involves creating a link on your destination cluster (Confluent Cloud Enterprise Cluster) that points to your source (Apache Kafka) cluster. You’ll use the `Confluent CLI` from your **Jumpbox** terminal to perform this setup.
 
-To set up Cluster Linking in Confluent Cloud, follow these steps:
+To set up Cluster Linking, follow these steps:
 
-1. Log in to the Confluent Cloud Console and select **Cluster links** from the menu on the left.
-2. Click **Create cluster link**.
-3. In the Source Cluster configurations:
+1. Login to Confluent Cloud using the following command:
 
-   	3.1. Select **Confluent Platform or Apache Kafka** as the Source Cluster.
-   
-   	3.2. Enter the source cluster ID (the cluster ID of your OSK instance that you copied earlier).
-   
-   	3.3. Uncheck the **Source initiated connection** in the Security access section and provide the Bootstrap server URL of your OSK (`<instance_public_ip>:9092`).
-   
-4. In the Destination Cluster configurations, select your environment and the dedicated cluster that you created previously.
-5. In the Configuration page:
+    ```
+    confluent login --organization 2880038e-130a-45b3-924a-c77ec9fa46ee --no-browser
+    ```
 
-   5.1. Select **Enable for all existing and future source cluster topics** option in the Auto-create mirror topics section.
+    Enter the registered email address you used when signing up for Confluent Cloud. You’ll receive a web link—open it in a browser to generate a token. Copy the token and paste it into your terminal.
 
-   5.2. Select **Sync all existing and future consumer groups** option in the Sync consumer offsets section.
+    > ⚠️ **Note:** If you belong to multiple organizations in Confluent Cloud, use the `--organization` flag to specify the organization containing the Enterprise Cluster you created earlier.    
 
-6. Enter a Cluster link name, review your configurations, and click **Launch Cluster Link**.  
+
+2. Identify your Environment that you used to create the Enterprise Cluster:
+
+    ```
+    confluent environment list
+    ```
+
+    It will list out all the Environments in your organization and display their ENVIRONMENT ID.
+
+3. Switch to that Environment using the following command (replace <ENVIRONMENT ID> with the actual value):
+
+    ```
+    confluent environment use <ENVIRONMENT ID>
+    ```
+
+4. Similarly, find and switch to your Enterprise Cluster:
+
+    ```
+    confluent kafka cluster list
+
+    confluent kafka cluster use <ENTERPRISE CLUSTER ID>
+    ```
+5. Creat a configuration file - `cluster_link.config` to create cluster linking. The configuration file is typically a simple key-value pair format, often structured as a Java properties file (i.e., one setting per line, with key=value). Each property defines a specific aspect of the cluster link, such as replication behavior, security credentials, inclusion/exclusion filters, and more.
+
+    ```
+    cat > cluster_link.config << EOF
+    auto.create.mirror.topics.enable=true
+    auto.create.mirror.topics.filters={"topicFilters":[{"name":"*","patternType":"LITERAL","filterType":"INCLUDE"}]}
+    consumer.offset.sync.enable=true
+    consumer.offset.group.filters={"groupFilters":[{"name":"*","patternType":"LITERAL","filterType":"INCLUDE"}]}
+
+    EOF
+    ```
+
+    A brief explanation of the options:
+
+    - `auto.create.mirror.topics.enable`: Determines whether new topics created on the source cluster are automatically mirrored to the destination cluster.
+    - `auto.create.mirror.topics.filters`: Controls which topics are eligible to be automatically mirrored. Uses filter rules to specify inclusion or exclusion by name or pattern type. In this case, its all the topics.
+    - `consumer.offset.sync.enable`: Enables or disables the synchronization of consumer group offsets between clusters.
+    - `consumer.offset.group.filters`: Specifies which consumer groups’ offsets will be mirrored using inclusion/exclusion filter logic. In this case, it mirrors offsets for all consumer groups in the source cluster.
+
+6. Create a destination-initiated (in this case, the destination is the Enterprise cluster) cluster link namely `osk-cc-link` by running the following command:
+
+    ```
+    confluent kafka link create osk-cc-link --source-cluster <APACHE_KAFKA_CLUSTER_ID> --source-bootstrap-server <KAFKA_PUBLIC_ID>:9092 --config ./cluster_link.config --cluster <ENTERPRISE_CLUSTER_ID>
+    ```
+
+    > ⚠️ **Note:** You can extract the <APACHE_KAFKA_CLUSTER_ID> by using the `kafka-cluster.sh cluster-id --bootstrap-server <KAFKA_PUBLIC_ID>:9092` command. Make sure to replace the placeholders with their actual values.
+
+    Once the link is create successfully, you can see the following output:
+
+    <div align="center" padding=25px>
+       <img src="images/create_cluster_link.png" width=50% height=50%>
+    </div>
+
+7. Wait for **5 minutes** before the cluster link is initialized. You can use the following command to view the state of the tasks:
+
+    ```
+    confluent kafka link task list osk-cc-link
+    ```
+
+    Once, everything is initialized you will see the following message:
+
+    <div align="center" padding=25px>
+       <img src="images/describe_link_status.png" width=50% height=50%>
+    </div>
 
 
 <br>
 
-## <a name="step-6"></a>Step 6: Create an API Key Pair for Accessing Comfluent Cloud Kafka
+## <a name="step-6"></a>Step 6: Create an API Key Pair for Accessing the Enterprise Cluster
 
-1. Select **API keys** on the left sidebar menu. 
-2. If this is your first API key within your cluster, click **Create key**. If you have set up API keys in your cluster in the past and already have an existing API key, click **+ Add key**.
+1. Swith to the Confluent Cloud Web console and navigate to the **Cluster Overview** section of your Enterprise Cluster.
+2. Click **API keys** on the left sidebar menu. 
+2. If this is your first API key within your cluster, click **Create key**. If you have set up API keys in your cluster in the past and already have an existing API key, click ** + Add key**.
+   
     <div align="center" padding=25px>
-       <img src="images/create-cc-api-key.png" width=50% height=50%>
+       <img src="images/create_api_keys.png" width=50% height=50%>
     </div>
 
 3. Select **My Account**, then click Next. Give it a description and click **Download and continue**
@@ -475,64 +535,24 @@ To set up Cluster Linking in Confluent Cloud, follow these steps:
 <br>
 
 
-## <a name="step-7"></a>Step 7: Verifying the Creation of the Mirror Topic in the Dedicated Cluster
+## <a name="step-7"></a>Step 7: Verifying the Creation of the Mirror Topic in the Enterprise Cluster
 
 To verify creation of the mirror topics, execute the following steps:
 
-1. Log into Confluent Cloud using the Confluent CLI. The CLI is already installed in the AWS EC2 instance. Connect to the EC2 instance using SSH and execute the following commands:
+1. Switch to the **Jumpbox** terminal window.
 
-    1.1. Login to Confluent Cloud:
 
+2. To list all the mirror topics associated with the cluster link, use the following command:
+
+    ```bash
+    confluent kafka mirror list
     ```
-    confluent login --no-browser
-    ```
-
-    If you belong to multiple Confluent Cloud organizations, include the `--organization` option during login to access the specific organization that contains your dedicated Kafka cluster.
-
-    1.2.  First, it's helpful to see which clusters are available in your current environment. This command will show you a list of your clusters along with their IDs.
-
-    ```
-    confluent kafka cluster list
-    ```
-
-    <br>
-
-    <details>
-    <summary>Click if you have multiple Confluent Cloud environments</summary>
-
-       1. List your environments:
-
-        `confluent environment list`
-        
-       2. Switch to a different environment:
-
-        `confluent environment use <environment-id>`
-
-       3. List clusters within that environment:
-
-        `confluent kafka cluster list`
-    </details>
-
-    <br>
-
-    1.3. Identify the cluster ID for your dedicated Kafka cluster and set it as your default for the session.
-
-    ```
-    confluent kafka cluster use <cluster-id>
-    ```
-
-
-2. To list all the mirror topics associated with the link, use the following command:
-
-```bash
-confluent kafka mirror list
-```
 
 3. To check the status and details of a specific mirror topic, execute the following command:
 
-```bash
-confluent kafka mirror describe <MIRROR-TOPIC-NAME> --link <CLUSTER-LINK-NAME>
-```
+    ```bash
+    confluent kafka mirror describe <MIRROR-TOPIC-NAME> --link <CLUSTER-LINK-NAME>
+    ```
 Look for the status to ensure it is in an active state and pulling records from the source.
 
 
