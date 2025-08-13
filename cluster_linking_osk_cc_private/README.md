@@ -702,6 +702,10 @@ Make sure to delete all the resources created if you no longer wish to use the e
 
 1. Delete the `Endpoint` you created manually in your AWS Cloud.
 
+    <div align="center" padding=25px>
+       <img src="images/delete_endpoint.png" width=50% height=50%>
+    </div>
+
 2. Run the following command to delete the all other AWS resources:
 
     ```bash
