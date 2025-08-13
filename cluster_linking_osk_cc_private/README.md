@@ -529,7 +529,7 @@ To set up Cluster Linking, follow these steps:
     </div>
 
 3. Select **My Account**, then click Next. Give it a description and click **Download and continue**
-4. Save your API key and secret - you will need these during the workshop.
+4. Save your API_KEY and API_SECRET - you will need these during the workshop.
 
 
 <br>
@@ -541,7 +541,6 @@ To verify creation of the mirror topics, execute the following steps:
 
 1. Switch to the **Jumpbox** terminal window.
 
-
 2. To list all the mirror topics associated with the cluster link, use the following command:
 
     ```bash
@@ -551,10 +550,30 @@ To verify creation of the mirror topics, execute the following steps:
 3. To check the status and details of a specific mirror topic, execute the following command:
 
     ```bash
-    confluent kafka mirror describe <MIRROR-TOPIC-NAME> --link <CLUSTER-LINK-NAME>
+    confluent kafka mirror describe test-topic --link osk-cc-link
     ```
-Look for the status to ensure it is in an active state and pulling records from the source.
 
+    Look for the **Mirror Status** to ensure it is in an `Active` state and pulling records from the source.
+
+4. Use the `Confluent` CLI to read from the mirror topic:
+
+    ```
+    confluent kafka topic consume test-topic --api-key <API_KEY> --api-secret <API_SECRET> --bootstrap <ENTERPRISE_CLUSTER_BOOTSTRAP>:9092 --from-beginning
+    ```
+
+    You will see all the data getting replicated from Apache Kafka to Confluent Cloud. Press CTRL+C to exit.
+
+
+5. Try to write some data to the mirror topic and see what happens:
+
+    ```
+    confluent kafka topic produce test-topic --api-key <API_KEY> --api-secret <API_SECRET> --bootstrap <ENTERPRISE_CLUSTER_BOOTSTRAP>:9092
+
+    ```
+
+    While adding some records you will probably see messages like - `failed to produce offset -1: Broker: Invalid request`.
+
+    You cannot write (produce) directly to mirror topics in a Confluent Kafka environment where cluster linking or topic mirroring is configured. 
 
 <br>
 
@@ -564,22 +583,22 @@ Look for the status to ensure it is in an active state and pulling records from 
 
 The mirror topics are read-only by default. To make a mirror topic writable (i.e., change it from read-only, mirrored state to a regular, independent, writable topic) in Confluent Kafka (whether in Confluent Platform or Confluent Cloud with Cluster Linking), you need to use either the promote or failover command. This operation is commonly called “promoting” the mirror topic, and is an essential step in cutover, DR, or migration workflows.
 
-> ⚠️ **Note:** Mirror topics are read-only topics created and owned by a cluster link. You cannot directly write to these topics; only the cluster link can synchronize data from the source topic. To make the topic writable, you must “convert” it to a regular topic by stopping (detaching) it from the cluster link. This is done by either promoting or failing over the topic. Once promoted or failed over, the mirror topic will permanently stop syncing from its source, and you can produce records to it like any other topic. This operation cannot be reversed—you would need to recreate the topic as a mirror topic if you want to re-establish mirroring.
+> ⚠️ **Note:** Mirror topics are read-only topics created and owned by a cluster link. You cannot directly write to these topics; only the cluster link can synchronize data from the source topic. To make the topic writable, you must “convert” it to a regular topic by stopping (detaching) it from the cluster link. This is done by either promoting or failing over the topic. Once promoted or failed over, the mirror topic will permanently stop syncing from its source, and you can produce records to it like any other topic. **This operation cannot be reversed—you would need to recreate the topic as a mirror topic if you want to re-establish mirroring**.
 
 Execute the following steps to make the mirror topic writable:
 
 1. Confirm the current status of the mirror topic (and check that mirroring lag is zero if doing a planned migration).
 
     ```bash
-    confluent kafka mirror describe <mirror-topic-name> --link <link-name>
+    confluent kafka mirror describe test-topic --link osk-cc-link
     ```
 
-    For promote, ensure network reachability between the destination and source clusters, and that lag is zero.
+    To promote, ensure network reachability between the destination and source clusters, and that lag is zero.
 
 2. Promote the mirror topic.
 
     ```bash
-    confluent kafka mirror promote <mirror-topic-name> --link <link-name> --cluster <destination-cluster-id>
+    confluent kafka mirror promote test-topic --link osk-cc-link --cluster <ENTERPRISE_CLUSTER_ID>
     ```
 
     This will check lag, synchronize everything, and make the topic writable only if fully caught up.
@@ -594,19 +613,19 @@ Execute the following steps to make the mirror topic writable:
 3. Validate that the topic is now writable by producing new records. For example, execute the following command:
 
     ```bash
-    confluent kafka topic produce test-topic --api-key <CC-API-KEY> --api-secret <CC-API-SECRET> --bootstrap <CC-KAFKA-BROKER>:9092
+    confluent kafka topic produce test-topic --api-key <API_KEY> --api-secret <API_SECRET> --bootstrap <ENTERPRISE_CLUSTER_BOOTSTRAP>:9092
     ```
 
 4. Check whether the new messages are written to the mirror topic:
 
     ```
-    confluent kafka topic consume test-topic-lamda --api-key <CC-API-KEY> --api-secret <CC-API-SECRET> --bootstrap <CC-KAFKA-BROKER>:9092 --from-beginning
+    confluent kafka topic consume test-topic --api-key <API_KEY> --api-secret <API_SECRET> --bootstrap <ENTERPRISE_CLUSTER_BOOTSTRAP>:9092 --from-beginning
     ```
 
-5. Check topic state. The topic state will be STOPPED when it is writable (no longer mirroring).
+5. Check topic state. The topic state will be `STOPPED` when it is writable (no longer mirroring).
 
     ```bash
-    confluent kafka mirror describe <mirror-topic-name> --link <link-name>
+    confluent kafka mirror describe test-topic --link osk-cc-link
     ```
 
 <br>
@@ -616,15 +635,15 @@ Execute the following steps to make the mirror topic writable:
 
 In this section, you will migrate your producer and consumer to write and read from Confluent Cloud Kafka cluster.
 
-1. Produce some sample data using the `kafka-console-producer.sh` utility. Ensure to replace `<CC-KAFKA-BROKER>`, `<CC-API-KEY>`, and `<CC-API-SECRET>` with actual values before executing the command:  
+1. Produce some sample data using the `kafka-console-producer.sh` utility. Ensure to replace `<ENTERPRISE_CLUSTER_BOOTSTRAP>`, `<API_KEY>`, and `<API_SECRET>` with actual values before executing the command:  
 
     ```bash
     kafka-console-producer.sh \
-    --bootstrap-server <CC-KAFKA-BROKER>:9092 \
+    --bootstrap-server <ENTERPRISE_CLUSTER_BOOTSTRAP>:9092 \
     --topic test-topic \
     --producer-property security.protocol=SASL_SSL \
     --producer-property sasl.mechanism=PLAIN \
-    --producer-property "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<CC-API-KEY>\" password=\"<CC-API-SECRET>\";"
+    --producer-property "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<AP_KEY>\" password=\"<API_SECRET>\";"
     ```
 
     Press **Ctrl+C** to exit the producer.
@@ -633,12 +652,12 @@ In this section, you will migrate your producer and consumer to write and read f
 
     ```bash
     kafka-console-consumer.sh \
-    --bootstrap-server <CC-KAFKA-BROKER>:9092 \
+    --bootstrap-server <ENTERPRISE_CLUSTER_BOOTSTRAP>:9092 \
     --topic test-topic \
     --from-beginning \
     --consumer-property security.protocol=SASL_SSL \
     --consumer-property sasl.mechanism=PLAIN \
-    --consumer-property "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<CC-API-KEY>\" password=\"<CC-API-SECRET>\";"
+    --consumer-property "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<API_KEY>\" password=\"<API_SECRET>\";"
     ```
 
     Make sure you see four messages. The one created on Confluent Kafka as well as OSK.
@@ -647,10 +666,10 @@ In this section, you will migrate your producer and consumer to write and read f
 
     ```bash
     kafka-consumer-groups.sh \
-    --bootstrap-server <CC-KAFKA-BROKER>:9092 \
+    --bootstrap-server <ENTERPRISE_CLUSTER_BOOTSTRAP>:9092 \
     --describe \
     --group my-consumer-group \
-    --command-config <(echo -e "security.protocol=SASL_SSL\nsasl.mechanism=PLAIN\nsasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<CC-API-KEY>\" password=\"<CC-API-SECRET>\";")
+    --command-config <(echo -e "security.protocol=SASL_SSL\nsasl.mechanism=PLAIN\nsasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<API_KEY>\" password=\"<API_SECRET>\";")
     ```
 
     The command will produce a table with the following important columns:
@@ -664,12 +683,12 @@ In this section, you will migrate your producer and consumer to write and read f
 
     ```bash
     kafka-console-consumer.sh \
-    --bootstrap-server <CC-KAFKA-BROKER>:9092 \
+    --bootstrap-server <ENTERPRISE_CLUSTER_BOOTSTRAP>:9092 \
     --topic test-topic \
     --group my-consumer-group \
     --consumer-property security.protocol=SASL_SSL \
     --consumer-property sasl.mechanism=PLAIN \
-    --consumer-property "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<CC-API-KEY>\" password=\"<CC-API-SECRET>\";"
+    --consumer-property "sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<API_KEY>\" password=\"<API_SECRET>\";"
     ```
 
     You see that the consumer from `my-consumer-group` starts consuming only the new messages from Confluent Kafka.
@@ -681,14 +700,16 @@ In this section, you will migrate your producer and consumer to write and read f
 
 Make sure to delete all the resources created if you no longer wish to use the environment.
 
-1. Run the following command to delete the AWS resources:
+1. Delete the `Endpoint` you created manually in your AWS Cloud.
+
+2. Run the following command to delete the all other AWS resources:
 
     ```bash
     cd workshop-XXXXXXX-XXXXXXX/terraform
 
     terraform destroy --auto-approve
     ```
-2. Make sure to delete all the Confluent Cloud resources (Topics, Kafka cluster, Cluster Links) to save your credits.
+3. Make sure to delete all the Confluent Cloud resources (Topics, Kafka cluster, Cluster Links) to save your credits.
 
 <br>
 
