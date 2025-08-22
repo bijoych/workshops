@@ -120,7 +120,7 @@ Install **Kafka command-line interface (CLI)** on your laptop without running a 
 <br>
 
 
-## Setup
+## Setup your Laptop
 
 1. Clone the repository onto your local development machine using `git clone https://github.com/confluentinc/XXXXXXXXXX.git`.
 2. Open a terminal window and change directory to the downloaded repository's terraform directory.
@@ -153,9 +153,9 @@ Install **Kafka command-line interface (CLI)** on your laptop without running a 
 <br>
 
 
-## <a name="step-1"></a>Step 1: Set up Open-Source Kafka (OSK)
+## <a name="step-1"></a>Step 1: Install and Provision Open-Source Kafka (OSK) 
 
-In this section, you will set up an OSK instance on AWS EC2 instance using a Terrform script. Execute the following steps to perform this task:
+In this section, you will use a Terraform script to provision an OSK instance on an AWS EC2 machine and set up a Jumpbox for running CLI commands. Follow the steps below to complete the setup:
 
 1. Ensure that you're in the directory of the downloaded GitHub repository within your terminal window. Also, confirm that the following environment variables are set for AWS access:
 
