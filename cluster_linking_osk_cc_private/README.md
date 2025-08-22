@@ -334,7 +334,7 @@ In this section, you will SSH into a **jumpbox VM** to run all the CLI commands.
     ssh -i my-tf-key.pem ec2-user@<jumpbox_public_ip>
     ```
 
-    Replace `<kafka_public_ip>` with the actual jumpbox public IP.
+    **Replace `<jumpbox_public_ip>` with the actual Jumpbox public IP.**
 
 3. Execute the following command to find the cluster ID for an open-source Apache Kafka installation. 
 
