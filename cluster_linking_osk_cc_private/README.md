@@ -10,6 +10,21 @@ This repository provides a demonstration of migrating data from Open Source Kafk
     <img src="images/architecture.png" width=75% height=75%>
 </div>
 
+<br>
+
+## **Objective:**
+
+**Acme.com**, a mid-sized e-commerce company runs a self-managed Open-Source Apache Kafka (OSK) cluster on-premises to handle real-time order events. As their customer base grows, maintaining uptime, scaling storage, and ensuring disaster recovery becomes increasingly challenging. To overcome these limitations and reduce operational overhead, they plan to migrate their data pipeline to Confluent Cloud.
+
+This workshop simulates that scenario by:
+
+- Setting up a local Kafka cluster to act as the on-prem system.
+- Producing order events to simulate real-world workloads.
+- Establishing a **Destination-Initiated Cluster Link** to pull topics and messages into Confluent Cloud.
+- Validating successful data replication.
+- Reconfiguring producers and consumers to point to Confluent Cloud, ensuring that consumers pick up from the latest offset post-migration.
+
+By the end, participants will understand the complete migration process and key considerations for moving production workloads to the cloud.
 
 <br>
 
@@ -135,24 +150,6 @@ Install **Kafka command-line interface (CLI)** on your laptop without running a 
    set AWS_SECRET_ACCESS_KEY="<AWS_SECRET>"
    set AWS_SESSION_TOKEN="<AWS_SESSION_TOKEN>"
    ```
-<br>
-
-
-## **Objective:**
-
-**Acme.com**, a mid-sized e-commerce company runs a self-managed Open-Source Apache Kafka (OSK) cluster on-premises to handle real-time order events. As their customer base grows, maintaining uptime, scaling storage, and ensuring disaster recovery becomes increasingly challenging. To overcome these limitations and reduce operational overhead, they plan to migrate their data pipeline to Confluent Cloud.
-
-This workshop simulates that scenario by:
-
-- Setting up a local Kafka cluster to act as the on-prem system.
-- Producing order events to simulate real-world workloads.
-- Establishing a **Destination-Initiated Cluster Link** to pull topics and messages into Confluent Cloud.
-- Validating successful data replication.
-- Reconfiguring producers and consumers to point to Confluent Cloud, ensuring that consumers pick up from the latest offset post-migration.
-
-By the end, participants will understand the complete migration process and key considerations for moving production workloads to the cloud.
-
-
 <br>
 
 
