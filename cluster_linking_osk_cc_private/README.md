@@ -25,7 +25,7 @@ Before you begin, ensure you have the following installed:
     > **Note:** You will create resources during this workshop that will incur costs. When you sign up for a Confluent Cloud account, you will get free credits to use in Confluent Cloud. This will cover the cost of resources created during the workshop. More details on the specifics can be found [here](https://www.confluent.io/confluent-cloud/tryfree/).
 
 - [Terraform](https://www.terraform.io/downloads.html) - v1.5.7 or later. 
-- [AWS CLI](https://aws.amazon.com/cli/) configured with appropriate credentials.
+- [AWS CLI (Optional)](https://aws.amazon.com/cli/) configured with appropriate credentials.
 - [Kafka CLI (Optional)](https://kafka.apache.org/downloads) 
 - [Confluent CLI (Optional)](https://docs.confluent.io/confluent-cli/current/install.html) - If on MAC run `brew install confluentinc/tap/cli`. 
 
@@ -113,21 +113,21 @@ Install **Kafka command-line interface (CLI)** on your laptop without running a 
    ```
    cd workshop-XXXXXXX-XXXXXXX/terraform
    ```
-3. Configure AWS CLI
+3. Steps to launch AWS Workspace and get AWS credentials - Refer to the document here: (https://docs.google.com/document/d/1eD0aB5W6TsAC2J77_KvBNIsTBZ7Ak7ZhOKWb_r2zzBA/edit?tab=t.0)
 
-   If you already have the AWS CLI configured on your machine and pointing to the correct AWS account, you can skip this step.
+   > ⚠️ **Note:**  If you already have the AWS CLI configured on your machine and pointing to the correct AWS account, you can skip this step.
+   
+4. Run the following command to configure the AWS credentials on your terminal window.
 
-   If you're using **AWS Workshop Studio**, click on **Get AWS CLI Credentials** to retrieve the necessary access key, secret key, and region. Then, run the following command to configure the CLI:
    <details>
    <summary>Click to expand for MAC</summary>
-
+       
    ```bash
    export AWS_DEFAULT_REGION="<cloud_region>"
    export AWS_ACCESS_KEY_ID="<AWS_API_KEY>"
    export AWS_SECRET_ACCESS_KEY="<AWS_SECRET>"
    export AWS_SESSION_TOKEN="<AWS_SESSION_TOKEN>"
    ```
-
    </details>
 
    <details>
@@ -139,24 +139,7 @@ Install **Kafka command-line interface (CLI)** on your laptop without running a 
    set AWS_SECRET_ACCESS_KEY="<AWS_SECRET>"
    set AWS_SESSION_TOKEN="<AWS_SESSION_TOKEN>"
    ```
-
-
    </details>
-4. Verify you are using the correct AWS account by running:
-
-   ```
-   aws sts get-caller-identity
-   ```
-   If you are using **AWS Workshop Studio**, you should have an output that looks like this:
-
-   ```bash
-   {
-    "UserId": "AROA4AFJ7PWFSQYLGZ3YL:Participant",
-    "Account": "xxxxxxxxxx",
-    "Arn": "arn:aws:sts::xxxxxxxxxx:assumed-role/WSParticipantRole/Participant"
-   }
-   ```
-
 
 <br>
 
