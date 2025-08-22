@@ -331,7 +331,7 @@ In this section, you will SSH into a **jumpbox VM** to run all the CLI commands.
 2. Use the following command to connect to the jumpbox instance via SSH:
 
     ```
-    ssh -i my-tf-key.pem ec2-user@<kafka_public_ip>
+    ssh -i my-tf-key.pem ec2-user@<jumpbox_public_ip>
     ```
 
     Replace `<kafka_public_ip>` with the actual jumpbox public IP.
