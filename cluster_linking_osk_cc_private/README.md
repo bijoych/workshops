@@ -119,7 +119,7 @@ Install **Kafka command-line interface (CLI)** on your laptop without running a 
    
 4. Run the following command to configure the AWS credentials on your terminal window.
 
-  **Commands for MAC**
+   nbsp&nbsp&Commands for MAC:
        
    ```bash
    export AWS_DEFAULT_REGION="<cloud_region>"
@@ -128,7 +128,7 @@ Install **Kafka command-line interface (CLI)** on your laptop without running a 
    export AWS_SESSION_TOKEN="<AWS_SESSION_TOKEN>"
    ```
 
-  **Commands for Windows**
+  nbsp&nbsp&Commands for Windows:
 
    ```bash
    set AWS_DEFAULT_REGION="<cloud_region>"
