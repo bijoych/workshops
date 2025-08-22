@@ -127,8 +127,7 @@ Install **Kafka command-line interface (CLI)** on your laptop without running a 
    export AWS_SECRET_ACCESS_KEY="<AWS_SECRET>"
    export AWS_SESSION_TOKEN="<AWS_SESSION_TOKEN>"
    ```
-
-  Commands for Windows:
+   Commands for Windows:
 
    ```bash
    set AWS_DEFAULT_REGION="<cloud_region>"
