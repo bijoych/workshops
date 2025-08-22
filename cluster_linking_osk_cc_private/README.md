@@ -113,7 +113,7 @@ Install **Kafka command-line interface (CLI)** on your laptop without running a 
    ```
    cd workshop-XXXXXXX-XXXXXXX/terraform
    ```
-3. Steps to launch AWS Workspace and get AWS credentials - Refer to the document [here](https://docs.google.com/document/d/1eD0aB5W6TsAC2J77_KvBNIsTBZ7Ak7ZhOKWb_r2zzBA/edit?tab=t.0)
+3. Steps to launch **AWS Workspace Studio** and get AWS credentials - Refer to the document [here](https://docs.google.com/document/d/1eD0aB5W6TsAC2J77_KvBNIsTBZ7Ak7ZhOKWb_r2zzBA/edit?tab=t.0)
 
    > ⚠️ **Note:**  If you already have the AWS CLI configured on your machine and pointing to the correct AWS account, you can skip this step.
    
